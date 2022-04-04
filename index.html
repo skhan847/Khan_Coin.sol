@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>My TOKEN</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+</head>
+<body style="background-color:powderblue;">
+
+<div class="container-fluid">
+
+
+  <input id="connect" type="button" value="Connect to Metamask" onclick="startNow();">
+  <br><br>
+      
+    View Total Supply  <br><br>
+
+  <div class="form-row">
+
+      
+	<div class="form-group col-md-2">
+    <button id="button" onclick="viewtsupply()">View Total Supply</button><br>
+    </div>
+	
+	
+	<b><div id="viewtotalsupply" ></div></b>
+	<br>
+  </div>
+
+    View Balance <br><br>
+
+  <div class="form-row">
+
+    <div class="form-group col-md-2">
+    <input  type="text" id="balanceOf_param1" placeholder="Wallet address">
+    </div>
+
+      
+	<div class="form-group col-md-2">
+    <button id="button" onclick="balanceOf()">Check Balance</button><br>
+    </div>
+	
+	
+	<b><div id="viewbalanceof" ></div></b>
+	<br>
+  </div>
+
+  
+    TRANSFER MyToken <br><br>
+
+  <div class="form-row">
+
+    <div class="form-group col-md-2">
+    <input  type="text" id="transfer_param1" placeholder="Transfer To">
+    </div>
+
+    <div class="form-group col-md-2">
+    <input  type="text" id="transfer_param2" placeholder="Amount">
+    </div>
+  	
+      
+	<div class="form-group col-md-2">
+    <button id="button" onclick="transfer()">Transfer</button><br>
+    </div>
+	
+	
+	<b><div id="viewtransfer" ></div></b>
+	<br>
+  </div>
+
+
+	<script type="text/javascript" src="./abi.js"></script>
+    <script type="text/javascript">
+
+window.userAddress = "";
+
+const CONTRACT_ADDRESS = "0x2cF52938A2f96199187F82E7D8A8a887d53d573e";
+
+async function startNow() {
+  if (window.ethereum) {
+    try {
+      await window.ethereum.request({ method: "eth_requestAccounts" })
+        .then(function (address) {
+          const web3 = new Web3(Web3.givenProvider || "http://localhost:8545");
+          MyToken = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
+          window.userAddress = address[0];
+          alert("Metamask connected sucessfully");
+        })
+          .catch((e) => e);
+
+          window.ethereum.on("accountsChanged", function (accounts) {
+            window.userAddress = address[0];
+          });
+         
+    } catch (error) {
+    if (error.code === 4001) {
+    }
+    console.log(error);
+
+    }
+  }
+}    
+
+if (window.userAddress) {
+  startNow();
+  
+}
+
+		
+      async  function viewtsupply(){
+			
+			const result = await MyToken.methods.totalSupply().call()
+			.then (function (result){		
+				$("#viewtotalsupply").html('<b>Total Supply is : </b> :'+ JSON.stringify(result));
+				console.log(result);
+			});
+		}
+	
+
+    async  function balanceOf(){
+			var p2 = document.getElementById('balanceOf_param1').value;
+			const result = await MyToken.methods.balanceOf(p2).call()
+			.then (function (result){		
+				$("#viewbalanceof").html('<b>MyToken Balance. </b> :'+ JSON.stringify(result));
+				console.log(result);
+			});
+		}
+	
+		async function transfer(){
+        var p1 = document.getElementById('transfer_param1').value;
+        var p2 = document.getElementById('transfer_param2').value;
+        
+		const result = await MyToken.methods.transfer(p1, p2).send({from:window.userAddress, gas:1000000})
+		.then(function (result) {
+		 $("#viewtransfer").html('Transfer sucessful <br>From : ' + (result.events.Transfer.returnValues._from) + '<br> To :    ' + (result.events.Transfer.returnValues._to) + '<br> of MyToken Amount: '+ (result.events.Transfer.returnValues._value));
+		console.log(result);
+        });
+		}
+		
+    </script>
+  </body>
+</html>
